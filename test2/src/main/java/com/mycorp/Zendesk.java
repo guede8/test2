@@ -12,11 +12,12 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.mycorp.exception.ZendeskException;
+import com.mycorp.handler.BasicAsyncCompletionHandler;
+import com.mycorp.handler.ZendeskAsyncCompletionHandler;
 import com.mycorp.support.Ticket;
-import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.ListenableFuture;
 import com.ning.http.client.Realm;
@@ -27,6 +28,7 @@ import com.ning.http.client.uri.Uri;
 
 public class Zendesk implements Closeable {
     private static final String JSON = "application/json; charset=UTF-8";
+    private static final Pattern RESTRICTED_PATTERN = Pattern.compile("%2B", Pattern.LITERAL);
     private final boolean closeClient;
     private final AsyncHttpClient client;
     private final Realm realm;
@@ -36,8 +38,11 @@ public class Zendesk implements Closeable {
     private final Logger logger;
     private boolean closed = false;
 
-
-    private Zendesk(AsyncHttpClient client, String url, String username, String password) {
+    /**
+	 * Genera un objeto Zendesk con los atributos de la clase
+	 * @return
+	 */
+    public Zendesk(AsyncHttpClient client, String url, String username, String password) {
         this.logger = LoggerFactory.getLogger(Zendesk.class);
         this.closeClient = client == null;
         this.oauthToken = null;
@@ -73,7 +78,6 @@ public class Zendesk implements Closeable {
         }
     }
 
-    private static final Pattern RESTRICTED_PATTERN = Pattern.compile("%2B", Pattern.LITERAL);
 
     private Request req(String method, Uri template, String contentType, byte[] body) {
         RequestBuilder builder = new RequestBuilder(method);
@@ -101,10 +105,6 @@ public class Zendesk implements Closeable {
         return Uri.create(url + template);
     }
 
-    private boolean isStatus2xx(Response response) {
-        return response.getStatusCode() / 100 == 2;
-    }
-
     private <T> ListenableFuture<T> submit(Request request, ZendeskAsyncCompletionHandler<T> handler) {
         if (logger.isDebugEnabled()) {
             if (request.getStringData() != null) {
@@ -119,7 +119,7 @@ public class Zendesk implements Closeable {
         return client.executeRequest(request, handler);
     }
 
-    private void logResponse(Response response) throws IOException {
+    public void logResponse(Response response) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Response HTTP/{} {}\n{}", response.getStatusCode(), response.getStatusText(),
                     response.getResponseBody());
@@ -138,47 +138,10 @@ public class Zendesk implements Closeable {
     }
 
 
-    private class BasicAsyncCompletionHandler<T> extends ZendeskAsyncCompletionHandler<T> {
-        private final Class<T> clazz;
-        private final String name;
-        private final Class[] typeParams;
-
-        public BasicAsyncCompletionHandler(Class clazz, String name, Class... typeParams) {
-            this.clazz = clazz;
-            this.name = name;
-            this.typeParams = typeParams;
-        }
-
-        @Override
-        public T onCompleted(Response response) throws Exception {
-            logResponse(response);
-            if (isStatus2xx(response)) {
-                if (typeParams.length > 0) {
-                    JavaType type = mapper.getTypeFactory().constructParametricType(clazz, typeParams);
-                    return mapper.convertValue(mapper.readTree(response.getResponseBodyAsStream()).get(name), type);
-                }
-                return mapper.convertValue(mapper.readTree(response.getResponseBodyAsStream()).get(name), clazz);
-            } else if (isRateLimitResponse(response)) {
-                throw new ZendeskException(response.toString());
-            }
-            if (response.getStatusCode() == 404) {
-                return null;
-            }
-            throw new ZendeskException(response.toString());
-        }
-    }
+   
 
 
-    private static abstract class ZendeskAsyncCompletionHandler<T> extends AsyncCompletionHandler<T> {
-        @Override
-        public void onThrowable(Throwable t) {
-            if (t instanceof IOException) {
-                throw new ZendeskException(t);
-            } else {
-                super.onThrowable(t);
-            }
-        }
-    }
+    
 
 
     //////////////////////////////////////////////////////////////////////
@@ -213,46 +176,5 @@ public class Zendesk implements Closeable {
         }
     }
 
-    public static class Builder {
-        private AsyncHttpClient client = null;
-        private final String url;
-        private String username = null;
-        private String password = null;
-        private String token = null;
-        private String oauthToken = null;
-
-        public Builder(String url) {
-            this.url = url;
-        }
-
-        public Builder setUsername(String username) {
-            this.username = username;
-            return this;
-        }
-
-        public Builder setPassword(String password) {
-            this.password = password;
-            if (password != null) {
-                this.token = null;
-                this.oauthToken = null;
-            }
-            return this;
-        }
-
-        public Builder setToken(String token) {
-            this.token = token;
-            if (token != null) {
-                this.password = null;
-                this.oauthToken = null;
-            }
-            return this;
-        }
-
-        public Zendesk build() {
-            if (token != null) {
-                return new Zendesk(client, url, username + "/token", token);
-            }
-            return new Zendesk(client, url, username, password);
-        }
-    }
+   
 }

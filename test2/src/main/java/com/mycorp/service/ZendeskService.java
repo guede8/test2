@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.mycorp.Zendesk;
+import com.mycorp.ZendeskUtils;
 import com.mycorp.bean.Builder;
 import com.mycorp.support.CorreoElectronico;
 import com.mycorp.support.DatosCliente;
@@ -119,7 +120,8 @@ public class ZendeskService {
 			Builder builder = new Builder(URL_ZENDESK);
 			builder.setUsername(ZENDESK_USER);
 			builder.setToken(TOKEN_ZENDESK);
-			Zendesk zendesk = builder.build();
+			ZendeskUtils zendeskutils = new ZendeskUtils();
+			Zendesk zendesk = zendeskutils.build(builder);
 
 			// Ticket
 			Ticket petiZendesk = mapper.readValue(ticket, Ticket.class);

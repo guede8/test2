@@ -1,6 +1,5 @@
 package com.mycorp.bean;
 
-import com.mycorp.Zendesk;
 import com.ning.http.client.AsyncHttpClient;
 
 public class Builder {
@@ -68,10 +67,4 @@ public class Builder {
 		}
 	}
 
-	public Zendesk build() {
-		if (token != null) {
-			return new Zendesk(client, url, username + "/token", token);
-		}
-		return new Zendesk(client, url, username, password);
-	}
 }
