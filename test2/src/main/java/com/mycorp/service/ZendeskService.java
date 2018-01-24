@@ -31,6 +31,11 @@ import portalclientesweb.ejb.interfaces.PortalClientesWebEJBRemote;
 import util.datos.PolizaBasico;
 import util.datos.UsuarioAlta;
 
+/**
+ * 
+ * @author test2
+ *
+ */
 @Service
 public class ZendeskService {
 
@@ -123,7 +128,7 @@ public class ZendeskService {
 		} catch (Exception e) {
 			LOG.error("Error al crear ticket ZENDESK", e);
 			// Send email
-			sendMail(datosUsuario, datosBravo);
+			sendErrorMail(datosUsuario, datosBravo);
 		}
 
 		datosUsuario.append(datosBravo);
@@ -131,7 +136,13 @@ public class ZendeskService {
 		return datosUsuario.toString();
 	}
 
-	private void sendMail(StringBuilder datosUsuario, StringBuilder datosBravo) {
+	/**
+	 * Envía un correo de error al destinatario indicado.
+	 * 
+	 * @param datosUsuario
+	 * @param datosBravo
+	 */
+	private void sendErrorMail(StringBuilder datosUsuario, StringBuilder datosBravo) {
 		CorreoElectronico correo = new CorreoElectronico(Long.parseLong(ZENDESK_ERROR_MAIL_FUNCIONALIDAD), "es")
 				.addParam(datosUsuario.toString().replaceAll(ESCAPE_ER + ESCAPED_LINE_SEPARATOR, HTML_BR))
 				.addParam(datosBravo.toString().replaceAll(ESCAPE_ER + ESCAPED_LINE_SEPARATOR, HTML_BR));
@@ -144,6 +155,13 @@ public class ZendeskService {
 
 	}
 
+	/**
+	 * Construye los datos de usuario.
+	 * 
+	 * @param usuarioAlta
+	 * @param userAgent
+	 * @return
+	 */
 	public StringBuilder buildForm(UsuarioAlta usuarioAlta, String userAgent) {
 		StringBuilder datosUsuario = new StringBuilder();
 		if (StringUtils.isNotBlank(usuarioAlta.getNumPoliza())) {
@@ -164,6 +182,16 @@ public class ZendeskService {
 		return datosUsuario;
 	}
 
+	/**
+	 * Obtiene el clientId
+	 * 
+	 * @param usuarioAlta
+	 * @param restTemplate
+	 * @param clientName
+	 * @param idCliente
+	 * @param datosServicio
+	 * @param mapper
+	 */
 	private void getClientId(UsuarioAlta usuarioAlta, RestTemplate restTemplate, StringBuilder clientName,
 			String idCliente, StringBuilder datosServicio, ObjectMapper mapper) {
 
@@ -206,6 +234,13 @@ public class ZendeskService {
 		}
 	}
 
+	/**
+	 * Obtiene los datos del cliente
+	 * 
+	 * @param datosBravo
+	 * @param idCliente
+	 * @param restTemplate
+	 */
 	private void getDatosCliente(StringBuilder datosBravo, String idCliente, RestTemplate restTemplate) {
 		try {
 			// Obtenemos los datos del cliente
@@ -255,13 +290,12 @@ public class ZendeskService {
 
 	public List<ValueCode> getTiposDocumentosRegistro() {
 		return Arrays.asList(new ValueCode(), new ValueCode()); // simulacion
-																// servicio
-																// externo
+																// xterno
 	}
 
 	/**
-	 * MÃ©todo para parsear el JSON de respuesta de los servicios de
-	 * tarjeta/pÃ³liza
+	 * Metodo para parsear el JSON de respuesta de los servicios de
+	 * tarjeta/poliza
 	 *
 	 * @param resBravo
 	 * @return
