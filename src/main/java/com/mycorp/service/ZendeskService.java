@@ -17,8 +17,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.mycorp.Zendesk;
-import com.mycorp.ZendeskUtils;
 import com.mycorp.bean.Builder;
 import com.mycorp.support.CorreoElectronico;
 import com.mycorp.support.DatosCliente;
@@ -27,6 +25,8 @@ import com.mycorp.support.Poliza;
 import com.mycorp.support.PolizaBasicoFromPolizaBuilder;
 import com.mycorp.support.Ticket;
 import com.mycorp.support.ValueCode;
+import com.mycorp.utils.ZendeskUtils;
+import com.mycorp.zendesk.Zendesk;
 
 import portalclientesweb.ejb.interfaces.PortalClientesWebEJBRemote;
 import util.datos.PolizaBasico;

@@ -1,4 +1,4 @@
-package com.mycorp;
+package com.mycorp.zendesk;
 
 import java.io.Closeable;
 import java.util.Collections;
@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.mycorp.exception.ZendeskException;
 import com.mycorp.handler.ZendeskAsyncCompletionHandler;
 import com.mycorp.support.Ticket;
+import com.mycorp.utils.ZendeskUtils;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.ListenableFuture;
 import com.ning.http.client.Realm;

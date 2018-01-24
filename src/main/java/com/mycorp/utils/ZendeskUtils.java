@@ -1,4 +1,4 @@
-package com.mycorp;
+package com.mycorp.utils;
 
 import java.io.IOException;
 
@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mycorp.bean.Builder;
+import com.mycorp.zendesk.Zendesk;
 import com.ning.http.client.Response;
 
 public class ZendeskUtils {
